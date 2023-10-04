@@ -1,0 +1,37 @@
+import java.util.HashMap;
+import java.util.Map;
+
+public class SuperMarketCheckout {
+
+    private Map<Character, SpecialOffer> pricingRules = new HashMap<>();
+    private Map<Character, Integer> itemCounts = new HashMap<>();
+
+    public SuperMarketCheckout(Map<Character, SpecialOffer> pricingRules) {
+        this.pricingRules = pricingRules;
+    }
+
+    public void scan(char item) {
+        pricingRules.computeIfAbsent(item, key -> {
+            throw new IllegalArgumentException("Invalid item: " + key);
+        });
+        itemCounts.put(item, itemCounts.getOrDefault(item, 0) + 1);
+    }
+
+
+    public int calculateTotal() {
+        return itemCounts.entrySet().stream()
+                .mapToInt(entry -> {
+                    char item = entry.getKey();
+                    int count = entry.getValue();
+                    int unitPrice = pricingRules.get(item).getUnitPrice();
+                    int specialPrice = pricingRules.get(item).getSpecialPrice();
+                    int specialQuantity = pricingRules.get(item).getSpecialQuantity();
+
+                    int specialOffersCount = count / specialQuantity;
+                    int remainingItems = count % specialQuantity;
+
+                    return (specialOffersCount * specialPrice) + (remainingItems * unitPrice);
+                })
+                .sum();
+    }
+}
